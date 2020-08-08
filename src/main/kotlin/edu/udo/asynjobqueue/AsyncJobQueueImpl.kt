@@ -7,13 +7,8 @@ internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJ
     private var future: Future<*>? = null
 
     override fun submit(job: Runnable) {
-        val future = this.future
-        if (future == null) {
-            this.future = executor.submit(job)
-        } else {
-            if (future.isDone) {
-                this.future = executor.submit(job)
-            }
+        if (future?.isDone != false) {
+            future = executor.submit(job)
         }
     }
 }
