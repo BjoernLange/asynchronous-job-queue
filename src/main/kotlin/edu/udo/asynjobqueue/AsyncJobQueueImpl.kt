@@ -6,6 +6,7 @@ import java.util.concurrent.Future
 internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJobQueue {
     private var future: Future<*>? = null
     private var next: Runnable? = null
+    private var furtherNext: Runnable? = null
 
     override fun submit(job: Runnable) {
         if (future?.isDone != false) {
@@ -13,11 +14,19 @@ internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJ
                 job.run()
                 val nr = next
                 if (nr != null) {
-                    executor.submit(nr)
+                    executor.submit(Runnable {
+                        nr.run()
+                        val nrr = furtherNext
+                        if (nrr != null) {
+                            executor.submit(nrr)
+                        }
+                    })
                 }
             })
-        } else {
+        } else if (next == null) {
             next = job
+        } else {
+            furtherNext = job
         }
     }
 }
