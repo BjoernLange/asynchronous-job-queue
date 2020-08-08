@@ -2,7 +2,9 @@ package edu.udo.asyncjobqueue
 
 import edu.udo.asynjobqueue.AsyncJobQueue
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 
 class AsyncJobQueueTest {
@@ -30,5 +32,25 @@ class AsyncJobQueueTest {
 
         // then:
         verify(executor).submit(job)
+    }
+
+    @Test
+    fun `When a job is submitted while another is running then the job is not submitted for execution`() {
+        // given:
+        val executor = mock(ExecutorService::class.java)
+        `when`(executor.submit(ArgumentMatchers.any())).thenReturn(CompletableFuture<Void>())
+        val jobQueue = AsyncJobQueue.create(executor)
+
+        val runningJob = Runnable {}
+        jobQueue.submit(runningJob)
+
+        val job = Runnable {}
+
+        // when:
+        jobQueue.submit(job)
+
+        // then:
+        verify(executor).submit(runningJob)
+        verifyNoMoreInteractions(executor)
     }
 }
