@@ -1,10 +1,11 @@
 package edu.udo.asynjobqueue
 
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
 
 internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJobQueue {
-    private val queue = mutableListOf<Runnable>()
+    private val queue = ConcurrentLinkedQueue<Runnable?>()
     private var future: Future<*>? = null
 
     override fun submit(job: Runnable) {
@@ -18,8 +19,9 @@ internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJ
     private fun submitForExecution(job: Runnable) {
         future = executor.submit {
             job.run()
-            if (queue.isNotEmpty()) {
-                submitForExecution(queue.removeAt(0))
+            val next = queue.poll()
+            if (next != null) {
+                submitForExecution(next)
             }
         }
     }
