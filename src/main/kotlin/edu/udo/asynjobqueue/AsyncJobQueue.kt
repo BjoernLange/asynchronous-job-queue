@@ -12,6 +12,16 @@ import java.util.concurrent.ExecutorService
  * blocking get operations are used for implementation.
  */
 interface AsyncJobQueue {
+    /**
+     * Submits a job for execution. The job will be run on the thread pool
+     * provided through the {@link ExecutorService} that was passed at
+     * {@link AsyncJobQueue} creation time. The job will be scheduled for
+     * execution only once all jobs that were scheduled prior were executed.
+     * In case no job is currently waiting to be scheduled the given job will
+     * be scheduled immediately.
+     *
+     * @param job The job to schedule.
+     */
     fun submit(job: Runnable)
 
     companion object {
