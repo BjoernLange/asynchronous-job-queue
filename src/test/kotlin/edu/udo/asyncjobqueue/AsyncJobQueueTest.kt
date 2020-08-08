@@ -8,7 +8,7 @@ import java.util.concurrent.ExecutorService
 
 class AsyncJobQueueTest {
     @Test
-    fun `When a job queue is created then it contains no jobs`() {
+    fun `When a job queue is created then no jobs are run`() {
         // given:
         val executor = mock(ExecutorService::class.java)
 
