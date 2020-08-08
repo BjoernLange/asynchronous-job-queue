@@ -1,11 +1,14 @@
 package edu.udo.asyncjobqueue
 
 import edu.udo.asynjobqueue.AsyncJobQueue
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
+import org.mockito.stubbing.Answer
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.Future
 
 class AsyncJobQueueTest {
     @Test
@@ -76,5 +79,42 @@ class AsyncJobQueueTest {
         // then:
         verify(executor).submit(completedJob)
         verify(executor).submit(job)
+    }
+
+    @Test
+    fun `When a running job completes then the next job is submitted for execution`() {
+        // given:
+        var scheduledJob: Runnable? = null
+        val future = CompletableFuture<Void?>()
+
+        val executor = mock(ExecutorService::class.java)
+        `when`(executor.submit(ArgumentMatchers.any())).thenAnswer(Answer<Future<*>> {
+            if (scheduledJob == null) {
+                val arg0 = it.arguments[0]
+                if (arg0 is Runnable) {
+                    scheduledJob = arg0
+                }
+                return@Answer future
+            } else {
+                return@Answer CompletableFuture<Void?>()
+            }
+        })
+        val jobQueue = AsyncJobQueue.create(executor)
+
+        val completingJob = Runnable {}
+        jobQueue.submit(completingJob)
+        val job = Runnable {}
+        jobQueue.submit(job)
+
+        verify(executor).submit(completingJob)
+        verifyNoMoreInteractions(executor)
+        assertThat(scheduledJob).isNotNull
+
+        // when:
+        scheduledJob.run { }
+
+        // then:
+        verify(executor).submit(job)
+        verifyNoMoreInteractions(executor)
     }
 }
