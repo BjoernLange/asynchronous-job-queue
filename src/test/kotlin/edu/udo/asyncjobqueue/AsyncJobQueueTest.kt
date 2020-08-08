@@ -53,4 +53,28 @@ class AsyncJobQueueTest {
         verify(executor).submit(runningJob)
         verifyNoMoreInteractions(executor)
     }
+
+    @Test
+    fun `When a job is submitted after another completed then the job is submitted for execution`() {
+        // given:
+        val future = CompletableFuture<Void?>()
+
+        val executor = mock(ExecutorService::class.java)
+        `when`(executor.submit(ArgumentMatchers.any())).thenReturn(future)
+        val jobQueue = AsyncJobQueue.create(executor)
+
+        val completedJob = Runnable {}
+        jobQueue.submit(completedJob)
+
+        future.complete(null)
+
+        val job = Runnable {}
+
+        // when:
+        jobQueue.submit(job)
+
+        // then:
+        verify(executor).submit(completedJob)
+        verify(executor).submit(job)
+    }
 }
