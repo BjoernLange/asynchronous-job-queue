@@ -15,6 +15,6 @@ interface AsyncJobQueue {
     fun submit(job: Runnable)
 
     companion object {
-        fun create(executor: ExecutorService): AsyncJobQueue = AsyncJobQueueImpl()
+        fun create(executor: ExecutorService): AsyncJobQueue = AsyncJobQueueImpl(executor)
     }
 }
