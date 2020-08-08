@@ -25,6 +25,11 @@ interface AsyncJobQueue {
     fun submit(job: Runnable)
 
     companion object {
+        /**
+         * Creates a new {@link AsyncJobQueue}.
+         *
+         * @param executor The {@link ExecutorService} to schedule jobs on.
+         */
         fun create(executor: ExecutorService): AsyncJobQueue = AsyncJobQueueImpl(executor)
     }
 }
