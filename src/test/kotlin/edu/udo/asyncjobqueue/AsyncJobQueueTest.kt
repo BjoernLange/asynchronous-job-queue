@@ -2,8 +2,7 @@ package edu.udo.asyncjobqueue
 
 import edu.udo.asynjobqueue.AsyncJobQueue
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verifyNoInteractions
+import org.mockito.Mockito.*
 import java.util.concurrent.ExecutorService
 
 class AsyncJobQueueTest {
@@ -28,5 +27,8 @@ class AsyncJobQueueTest {
 
         // when:
         jobQueue.submit(job)
+
+        // then:
+        verify(executor).submit(job)
     }
 }
