@@ -106,4 +106,29 @@ class AsyncJobQueueTest {
         assertThat(executor.submitted).hasSize(1)
         verify(completingJob).run()
     }
+
+    @Test
+    fun `When three jobs are submitted then they are executed in order`() {
+        // given:
+        val executor = ManualExecutorService()
+        val jobQueue = AsyncJobQueue.create(executor)
+
+        val job1 = mock(Runnable::class.java)
+        jobQueue.submit(job1)
+        val job2 = mock(Runnable::class.java)
+        jobQueue.submit(job2)
+        val job3 = mock(Runnable::class.java)
+        jobQueue.submit(job3)
+
+        // when:
+        executor.runNext()
+        executor.runNext()
+        executor.runNext()
+
+        // then:
+        assertThat(executor.submitted).isEmpty()
+        verify(job1).run()
+        verify(job2).run()
+        verify(job3).run()
+    }
 }
