@@ -12,6 +12,8 @@ import java.util.concurrent.ExecutorService
  * blocking get operations are used for implementation.
  */
 interface AsyncJobQueue {
+    fun submit(job: Runnable)
+
     companion object {
         fun create(executor: ExecutorService): AsyncJobQueue = AsyncJobQueueImpl()
     }
