@@ -19,7 +19,7 @@ class AsyncJobQueueTest {
     }
 
     @Test
-    fun `When a job is queued and no job is running then it is immediately submitted for execution`() {
+    fun `When a job is submitted and no job is running then it is immediately submitted for execution`() {
         // given:
         val executor = mock(ExecutorService::class.java)
         val jobQueue = AsyncJobQueue.create(executor)
