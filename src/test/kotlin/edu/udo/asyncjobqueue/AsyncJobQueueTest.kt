@@ -3,12 +3,8 @@ package edu.udo.asyncjobqueue
 import edu.udo.asynjobqueue.AsyncJobQueue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
-import org.mockito.stubbing.Answer
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Future
 
 class AsyncJobQueueTest {
     @Test
@@ -26,7 +22,7 @@ class AsyncJobQueueTest {
     @Test
     fun `When a job is submitted and no job is running then it is immediately submitted for execution`() {
         // given:
-        val executor = mock(ExecutorService::class.java)
+        val executor = ManualExecutorService()
         val jobQueue = AsyncJobQueue.create(executor)
         val job = Runnable {}
 
@@ -34,14 +30,29 @@ class AsyncJobQueueTest {
         jobQueue.submit(job)
 
         // then:
-        verify(executor).submit(job)
+        assertThat(executor.submitted).hasSize(1)
+    }
+
+    @Test
+    fun `When a job is submitted then it is executed`() {
+        // given:
+        val executor = ManualExecutorService()
+        val jobQueue = AsyncJobQueue.create(executor)
+        val job = mock(Runnable::class.java)
+        jobQueue.submit(job)
+
+        // when:
+        executor.runNext()
+
+        // then:
+        assertThat(executor.submitted).isEmpty()
+        verify(job).run()
     }
 
     @Test
     fun `When a job is submitted while another is running then the job is not submitted for execution`() {
         // given:
-        val executor = mock(ExecutorService::class.java)
-        `when`(executor.submit(ArgumentMatchers.any())).thenReturn(CompletableFuture<Void>())
+        val executor = ManualExecutorService()
         val jobQueue = AsyncJobQueue.create(executor)
 
         val runningJob = Runnable {}
@@ -53,23 +64,18 @@ class AsyncJobQueueTest {
         jobQueue.submit(job)
 
         // then:
-        verify(executor).submit(runningJob)
-        verifyNoMoreInteractions(executor)
+        assertThat(executor.submitted).hasSize(1)
     }
 
     @Test
     fun `When a job is submitted after another completed then the job is submitted for execution`() {
         // given:
-        val future = CompletableFuture<Void?>()
-
-        val executor = mock(ExecutorService::class.java)
-        `when`(executor.submit(ArgumentMatchers.any())).thenReturn(future)
+        val executor = ManualExecutorService()
         val jobQueue = AsyncJobQueue.create(executor)
 
         val completedJob = Runnable {}
         jobQueue.submit(completedJob)
-
-        future.complete(null)
+        executor.runNext()
 
         val job = Runnable {}
 
@@ -77,44 +83,27 @@ class AsyncJobQueueTest {
         jobQueue.submit(job)
 
         // then:
-        verify(executor).submit(completedJob)
-        verify(executor).submit(job)
+        assertThat(executor.submitted).hasSize(1)
     }
 
     @Test
     fun `When a running job completes then the next job is submitted for execution`() {
         // given:
-        var scheduledJob: Runnable? = null
-        val future = CompletableFuture<Void?>()
-
-        val executor = mock(ExecutorService::class.java)
-        `when`(executor.submit(ArgumentMatchers.any())).thenAnswer(Answer<Future<*>> {
-            if (scheduledJob == null) {
-                val arg0 = it.arguments[0]
-                if (arg0 is Runnable) {
-                    scheduledJob = arg0
-                }
-                return@Answer future
-            } else {
-                return@Answer CompletableFuture<Void?>()
-            }
-        })
+        val executor = ManualExecutorService()
         val jobQueue = AsyncJobQueue.create(executor)
 
-        val completingJob = Runnable {}
+        val completingJob = mock(Runnable::class.java)
         jobQueue.submit(completingJob)
         val job = Runnable {}
         jobQueue.submit(job)
 
-        verify(executor).submit(completingJob)
-        verifyNoMoreInteractions(executor)
-        assertThat(scheduledJob).isNotNull
+        assertThat(executor.submitted).hasSize(1)
 
         // when:
-        scheduledJob.run { }
+        executor.runNext()
 
         // then:
-        verify(executor).submit(job)
-        verifyNoMoreInteractions(executor)
+        assertThat(executor.submitted).hasSize(1)
+        verify(completingJob).run()
     }
 }
