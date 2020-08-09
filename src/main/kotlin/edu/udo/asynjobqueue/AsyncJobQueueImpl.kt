@@ -1,27 +1,40 @@
 package edu.udo.asynjobqueue
 
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Future
+import java.util.concurrent.Semaphore
 
 internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJobQueue {
-    private val queue = ConcurrentLinkedQueue<Runnable?>()
-    private var future: Future<*>? = null
+    private val queue = mutableListOf<Runnable>()
+    private val mutex = Semaphore(1)
+    private var jobExecuting = false
 
     override fun submit(job: Runnable) {
-        if (future?.isDone != false) {
-            submitForExecution(job)
-        } else {
-            queue.add(job)
+        mutex.acquire()
+        try {
+            if (!jobExecuting) {
+                submitForExecution(job)
+            } else {
+                queue.add(job)
+            }
+        } finally {
+            mutex.release()
         }
     }
 
     private fun submitForExecution(job: Runnable) {
-        future = executor.submit {
+        jobExecuting = true
+        executor.submit {
             job.run()
-            val next = queue.poll()
-            if (next != null) {
-                submitForExecution(next)
+
+            mutex.acquire()
+            try {
+                if (queue.isNotEmpty()) {
+                    submitForExecution(queue.removeAt(0))
+                } else {
+                    jobExecuting = false
+                }
+            } finally {
+                mutex.release()
             }
         }
     }
