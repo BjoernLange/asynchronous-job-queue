@@ -25,17 +25,20 @@ internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJ
         jobExecuting = true
         executor.submit {
             job.run()
+            submitNextForExecution()
+        }
+    }
 
-            mutex.acquire()
-            try {
-                if (queue.isNotEmpty()) {
-                    submitForExecution(queue.removeAt(0))
-                } else {
-                    jobExecuting = false
-                }
-            } finally {
-                mutex.release()
+    private fun submitNextForExecution() {
+        mutex.acquire()
+        try {
+            if (queue.isNotEmpty()) {
+                submitForExecution(queue.removeAt(0))
+            } else {
+                jobExecuting = false
             }
+        } finally {
+            mutex.release()
         }
     }
 }
