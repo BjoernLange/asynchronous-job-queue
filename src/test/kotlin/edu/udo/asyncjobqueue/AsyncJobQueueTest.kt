@@ -151,4 +151,20 @@ class AsyncJobQueueTest {
         // then:
         verify(job).run()
     }
+
+    @Test
+    fun `When a job is submitted then it can be checked whether it is done`() {
+        // given:
+        val executor = ManualExecutorService()
+        val jobQueue = AsyncJobQueue.create(executor)
+
+        val future = jobQueue.submit(Runnable { })
+        assertThat(future.isDone).isFalse
+
+        // when:
+        executor.runNext()
+
+        // then:
+        assertThat(future.isDone).isTrue
+    }
 }
