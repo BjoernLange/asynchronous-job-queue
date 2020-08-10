@@ -24,7 +24,11 @@ internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJ
     private fun submitForExecution(job: Runnable) {
         jobExecuting = true
         executor.submit {
-            job.run()
+            try {
+                job.run()
+            } catch (e: Exception) {
+               
+            }
             submitNextForExecution()
         }
     }
