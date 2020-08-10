@@ -131,4 +131,24 @@ class AsyncJobQueueTest {
         verify(job2).run()
         verify(job3).run()
     }
+
+    @Test
+    fun `When a job throws an exception then the next scheduled is still executed`() {
+        // given:
+        val executor = ManualExecutorService()
+        val jobQueue = AsyncJobQueue.create(executor)
+
+        val crashingJob = Runnable { throw IllegalArgumentException() }
+        val job = mock(Runnable::class.java)
+
+        jobQueue.submit(crashingJob)
+        jobQueue.submit(job)
+
+        // when:
+        executor.runNext()
+        executor.runNext()
+
+        // then:
+        verify(job).run()
+    }
 }
