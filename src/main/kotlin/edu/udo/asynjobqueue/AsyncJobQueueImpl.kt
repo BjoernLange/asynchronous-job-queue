@@ -5,35 +5,37 @@ import java.util.concurrent.Future
 import java.util.concurrent.Semaphore
 
 internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJobQueue {
-    private val queue = mutableListOf<Runnable>()
+    private val queue = mutableListOf<Job>()
     private val mutex = Semaphore(1)
     private var jobExecuting = false
 
     override fun submit(job: Runnable): Future<Any> {
         mutex.acquire()
         try {
-            return if (!jobExecuting) {
-                submitForExecution(job)
+            val enqueued = Job(job, FutureWrapper())
+            if (!jobExecuting) {
+                submitForExecution(enqueued)
             } else {
-                queue.add(job)
-                FutureWrapper()
+                queue.add(enqueued)
             }
+            return enqueued.future
         } finally {
             mutex.release()
         }
     }
 
-    private fun submitForExecution(job: Runnable): Future<Any> {
+    private fun submitForExecution(job: Job) {
         jobExecuting = true
-        return FutureWrapper(executor.submit {
+        val future = executor.submit {
             try {
-                job.run()
+                job.runnable.run()
             } catch (e: Exception) {
-                e.printStackTrace();
+                e.printStackTrace()
             } finally {
                 submitNextForExecution()
             }
-        })
+        }
+        job.future.wrapped = future
     }
 
     private fun submitNextForExecution() {
