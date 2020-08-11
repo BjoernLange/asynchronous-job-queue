@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -224,6 +225,25 @@ class AsyncJobQueueTest {
 
         // when:
         future.get()
+
+        // then:
+        assertTrue(completed)
+    }
+
+    @Test
+    fun `When the scheduling thread waits for the job to complete with timeout then the job does complete prior to the thread waking up`() {
+        // given:
+        val executor = Executors.newFixedThreadPool(1);
+        val jobQueue = AsyncJobQueue.create(executor)
+
+        var completed = false
+        val future = jobQueue.submit(Runnable {
+            Thread.sleep(200)
+            completed = true
+        })
+
+        // when:
+        future.get(1, TimeUnit.SECONDS)
 
         // then:
         assertTrue(completed)
