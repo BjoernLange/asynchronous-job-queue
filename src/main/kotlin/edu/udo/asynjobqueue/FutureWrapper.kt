@@ -12,8 +12,8 @@ internal class FutureWrapper(var wrapped: Future<Future<*>>) : Future<Any?> {
         return wrapped.get().get()
     }
 
-    override fun get(p0: Long, p1: TimeUnit): Any {
-        TODO("Not yet implemented")
+    override fun get(timeout: Long, unit: TimeUnit): Any? {
+        return get()
     }
 
     override fun cancel(p0: Boolean): Boolean {
