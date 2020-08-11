@@ -4,13 +4,9 @@ import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 
 internal class FutureWrapper(var wrapped: Future<Future<*>>) : Future<Any?> {
-    override fun isDone(): Boolean {
-        return wrapped.isDone && wrapped.get().isDone
-    }
+    override fun isDone() = wrapped.isDone && wrapped.get().isDone
 
-    override fun get(): Any? {
-        return wrapped.get().get()
-    }
+    override fun get(): Any? = wrapped.get().get()
 
     override fun get(timeout: Long, unit: TimeUnit): Any? {
         val timeoutInMillis = unit.toMillis(timeout)
