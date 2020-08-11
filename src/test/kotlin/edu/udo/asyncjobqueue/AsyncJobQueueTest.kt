@@ -266,4 +266,20 @@ class AsyncJobQueueTest {
             future.get(1, TimeUnit.MILLISECONDS)
         }
     }
+
+    @Test
+    fun `When a job times out during execution then a TimeoutException is thrown`() {
+        // given:
+        val executor = Executors.newFixedThreadPool(1)
+        val jobQueue = AsyncJobQueue.create(executor)
+
+        val future = jobQueue.submit(Runnable {
+            Thread.sleep(200)
+        })
+
+        // when:
+        Assertions.assertThrows(TimeoutException::class.java) {
+            future.get(1, TimeUnit.MILLISECONDS)
+        }
+    }
 }
