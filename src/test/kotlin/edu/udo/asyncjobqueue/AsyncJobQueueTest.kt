@@ -207,4 +207,25 @@ class AsyncJobQueueTest {
         // then:
         assertTrue(completed)
     }
+
+    @Test
+    fun `When the scheduling thread waits for the second job to complete then the job does complete prior to the thread waking up`() {
+        // given:
+        val executor = Executors.newFixedThreadPool(1);
+        val jobQueue = AsyncJobQueue.create(executor)
+
+        jobQueue.submit(Runnable { Thread.sleep(200) })
+
+        var completed = false
+        val future = jobQueue.submit(Runnable {
+            Thread.sleep(200)
+            completed = true
+        })
+
+        // when:
+        future.get()
+
+        // then:
+        assertTrue(completed)
+    }
 }
