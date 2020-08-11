@@ -282,4 +282,21 @@ class AsyncJobQueueTest {
             future.get(1, TimeUnit.MILLISECONDS)
         }
     }
+
+    @Test
+    fun `When the scheduling thread waits for a job and the sum of the wait stages exceeds the timeout then a TimeoutException is thrown`() {
+        // given:
+        val executor = Executors.newFixedThreadPool(1)
+        val jobQueue = AsyncJobQueue.create(executor)
+
+        jobQueue.submit(Runnable { Thread.sleep(150) })
+        val future = jobQueue.submit(Runnable {
+            Thread.sleep(150)
+        })
+
+        // when:
+        Assertions.assertThrows(TimeoutException::class.java) {
+            future.get(200, TimeUnit.MILLISECONDS)
+        }
+    }
 }
