@@ -1,6 +1,7 @@
 package edu.udo.asynjobqueue
 
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.Future
 
 /**
  * The {@link AsyncJobQueue} implements a FIFO queue of jobs which are run on
@@ -21,8 +22,9 @@ interface AsyncJobQueue {
      * be scheduled immediately.
      *
      * @param job The job to schedule.
+     * @return A {@link Future} that can be used to monitor or cancel the job.
      */
-    fun submit(job: Runnable)
+    fun submit(job: Runnable): Future<Any>
 
     companion object {
         /**

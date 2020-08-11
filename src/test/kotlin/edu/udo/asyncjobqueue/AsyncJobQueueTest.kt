@@ -5,6 +5,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import java.util.concurrent.ExecutorService
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class AsyncJobQueueTest {
     @Test
@@ -133,7 +135,7 @@ class AsyncJobQueueTest {
     }
 
     @Test
-    fun `When a job throws an exception then the next scheduled is still executed`() {
+    fun `When a job throws an exception then the next scheduled job is still executed`() {
         // given:
         val executor = ManualExecutorService()
         val jobQueue = AsyncJobQueue.create(executor)
@@ -159,12 +161,12 @@ class AsyncJobQueueTest {
         val jobQueue = AsyncJobQueue.create(executor)
 
         val future = jobQueue.submit(Runnable { })
-        assertThat(future.isDone).isFalse
+        assertFalse(future.isDone)
 
         // when:
         executor.runNext()
 
         // then:
-        assertThat(future.isDone).isTrue
+        assertTrue(future.isDone)
     }
 }
