@@ -13,7 +13,7 @@ internal class FutureWrapper(var wrapped: Future<Future<*>>) : Future<Any?> {
     }
 
     override fun get(timeout: Long, unit: TimeUnit): Any? {
-        return get()
+        return wrapped.get(timeout, unit).get()
     }
 
     override fun cancel(p0: Boolean): Boolean {
