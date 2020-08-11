@@ -9,7 +9,7 @@ internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJ
     private val mutex = Semaphore(1)
     private var jobExecuting = false
 
-    override fun submit(job: Runnable): Future<Any> {
+    override fun submit(job: Runnable): Future<Any?> {
         mutex.acquire()
         try {
             val jobInstance = Job(job)
