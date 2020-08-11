@@ -12,13 +12,13 @@ internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJ
     override fun submit(job: Runnable): Future<Any> {
         mutex.acquire()
         try {
-            val enqueued = Job(job, FutureWrapper())
+            val jobInstance = Job(job)
             if (!jobExecuting) {
-                submitForExecution(enqueued)
+                submitForExecution(jobInstance)
             } else {
-                queue.add(enqueued)
+                queue.add(jobInstance)
             }
-            return enqueued.future
+            return jobInstance.future
         } finally {
             mutex.release()
         }
