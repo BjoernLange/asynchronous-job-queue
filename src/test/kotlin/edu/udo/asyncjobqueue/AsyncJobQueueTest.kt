@@ -169,4 +169,22 @@ class AsyncJobQueueTest {
         // then:
         assertTrue(future.isDone)
     }
+
+    @Test
+    fun `When two jobs are submitted then it can be checked whether the second one is done`() {
+        // given:
+        val executor = ManualExecutorService()
+        val jobQueue = AsyncJobQueue.create(executor)
+
+        jobQueue.submit(Runnable { })
+        val future = jobQueue.submit(Runnable { })
+        assertFalse(future.isDone)
+
+        // when:
+        executor.runNext()
+        executor.runNext()
+
+        // then:
+        assertTrue(future.isDone)
+    }
 }
