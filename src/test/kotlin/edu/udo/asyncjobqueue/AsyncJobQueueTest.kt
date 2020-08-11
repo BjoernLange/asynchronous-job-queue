@@ -2,11 +2,13 @@ package edu.udo.asyncjobqueue
 
 import edu.udo.asynjobqueue.AsyncJobQueue
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -193,7 +195,7 @@ class AsyncJobQueueTest {
     @Test
     fun `When the scheduling thread waits for the job to complete then the job does complete prior to the thread waking up`() {
         // given:
-        val executor = Executors.newFixedThreadPool(1);
+        val executor = Executors.newFixedThreadPool(1)
         val jobQueue = AsyncJobQueue.create(executor)
 
         var completed = false
@@ -212,7 +214,7 @@ class AsyncJobQueueTest {
     @Test
     fun `When the scheduling thread waits for the second job to complete then the job does complete prior to the thread waking up`() {
         // given:
-        val executor = Executors.newFixedThreadPool(1);
+        val executor = Executors.newFixedThreadPool(1)
         val jobQueue = AsyncJobQueue.create(executor)
 
         jobQueue.submit(Runnable { Thread.sleep(200) })
@@ -233,7 +235,7 @@ class AsyncJobQueueTest {
     @Test
     fun `When the scheduling thread waits for the job to complete with timeout then the job does complete prior to the thread waking up`() {
         // given:
-        val executor = Executors.newFixedThreadPool(1);
+        val executor = Executors.newFixedThreadPool(1)
         val jobQueue = AsyncJobQueue.create(executor)
 
         var completed = false
@@ -247,5 +249,21 @@ class AsyncJobQueueTest {
 
         // then:
         assertTrue(completed)
+    }
+
+    @Test
+    fun `When the job is not scheduled until it times out then a TimeoutException is thrown`() {
+        // given:
+        val executor = Executors.newFixedThreadPool(1)
+        val jobQueue = AsyncJobQueue.create(executor)
+
+        jobQueue.submit(Runnable { Thread.sleep(1000) })
+
+        val future = jobQueue.submit(Runnable {})
+
+        // when:
+        Assertions.assertThrows(TimeoutException::class.java) {
+            future.get(1, TimeUnit.MILLISECONDS)
+        }
     }
 }
