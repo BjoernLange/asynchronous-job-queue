@@ -3,13 +3,13 @@ package edu.udo.asynjobqueue
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 
-internal class FutureWrapper(var wrapped: Future<*>? = null) : Future<Any?> {
+internal class FutureWrapper(var wrapped: Future<Future<*>>) : Future<Any?> {
     override fun isDone(): Boolean {
-        return wrapped?.isDone == true
+        return wrapped.isDone && wrapped.get().isDone
     }
 
     override fun get(): Any? {
-        return wrapped?.get()
+        return wrapped.get().get()
     }
 
     override fun get(p0: Long, p1: TimeUnit): Any {

@@ -18,7 +18,7 @@ internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJ
             } else {
                 queue.add(jobInstance)
             }
-            return jobInstance.future
+            return FutureWrapper(jobInstance.future)
         } finally {
             mutex.release()
         }
@@ -35,7 +35,7 @@ internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJ
                 submitNextForExecution()
             }
         }
-        job.future.wrapped = future
+        job.future.complete(future)
     }
 
     private fun submitNextForExecution() {
