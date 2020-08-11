@@ -13,7 +13,17 @@ internal class FutureWrapper(var wrapped: Future<Future<*>>) : Future<Any?> {
     }
 
     override fun get(timeout: Long, unit: TimeUnit): Any? {
-        return wrapped.get(timeout, unit).get(timeout, unit)
+        val timeoutInMillis = unit.toMillis(timeout)
+        val (future, consumedMillis) = measureTimeMillisWithResult {
+            wrapped.get(timeoutInMillis, TimeUnit.MILLISECONDS)
+        }
+        return future.get(timeoutInMillis - consumedMillis, TimeUnit.MILLISECONDS)
+    }
+
+    private fun <T> measureTimeMillisWithResult(block: () -> T): Pair<T, Long> {
+        val start = System.currentTimeMillis()
+        val result = block()
+        return result to (System.currentTimeMillis() - start)
     }
 
     override fun cancel(p0: Boolean): Boolean {
