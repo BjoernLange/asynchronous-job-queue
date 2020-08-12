@@ -311,9 +311,10 @@ class AsyncJobQueueTest {
         val future = jobQueue.submit(Runnable { jobWasInvoked = true })
 
         // when:
-        future.cancel(true)
+        val result = future.cancel(true)
 
         // then:
+        assertTrue(result)
         Thread.sleep(300)
         assertFalse(jobWasInvoked)
     }
@@ -332,12 +333,13 @@ class AsyncJobQueueTest {
                 jobWasInterrupted = true
             }
         })
+        Thread.sleep(100)
 
         // when:
-        future.cancel(true)
+        val result = future.cancel(true)
 
         // then:
-        Thread.sleep(300)
+        assertTrue(result)
         assertTrue(jobWasInterrupted)
     }
 }

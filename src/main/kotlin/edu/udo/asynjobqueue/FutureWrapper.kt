@@ -23,7 +23,7 @@ internal class FutureWrapper(var wrapped: Future<Future<*>>) : Future<Any?> {
     }
 
     override fun cancel(mayInterruptIfRunning: Boolean): Boolean {
-        return wrapped.cancel(mayInterruptIfRunning)
+        return wrapped.cancel(mayInterruptIfRunning) || wrapped.get().cancel(mayInterruptIfRunning)
     }
 
     override fun isCancelled(): Boolean {
