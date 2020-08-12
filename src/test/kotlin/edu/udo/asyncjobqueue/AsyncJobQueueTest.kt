@@ -299,4 +299,22 @@ class AsyncJobQueueTest {
             future.get(200, TimeUnit.MILLISECONDS)
         }
     }
+
+    @Test
+    fun `When a scheduled job is canceled before it was submitted for execution then the job is never run`() {
+        // given:
+        val executor = Executors.newFixedThreadPool(1)
+        val jobQueue = AsyncJobQueue.create(executor)
+
+        jobQueue.submit(Runnable { Thread.sleep(200) })
+        var jobWasInvoked = false
+        val future = jobQueue.submit(Runnable { jobWasInvoked = true })
+
+        // when:
+        future.cancel(true)
+
+        // then:
+        Thread.sleep(300)
+        assertFalse(jobWasInvoked)
+    }
 }
