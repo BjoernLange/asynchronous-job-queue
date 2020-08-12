@@ -6,11 +6,11 @@ import java.util.concurrent.Semaphore
 
 internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJobQueue {
     private val queue = mutableListOf<Job>()
-    private val mutex = Semaphore(1)
+    private val stateMutex = Semaphore(1)
     private var jobExecuting = false
 
     override fun submit(job: Runnable): Future<Any?> {
-        mutex.acquire()
+        stateMutex.acquire()
         try {
             val jobInstance = Job(job)
             if (!jobExecuting) {
@@ -20,28 +20,36 @@ internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJ
             }
             return FutureWrapper(jobInstance.future)
         } finally {
-            mutex.release()
+            stateMutex.release()
         }
     }
 
     private fun submitForExecution(job: Job) {
-        jobExecuting = true
-        val future = executor.submit {
-            try {
-                if (!job.future.isCancelled) {
-                    job.runnable.run()
+        val cancelSemaphore = Semaphore(0)
+        try {
+            jobExecuting = true
+            val future = executor.submit {
+                try {
+                    cancelSemaphore.acquire()
+                    if (!job.future.isCancelled) {
+                        job.runnable.run()
+                    }
+                } catch (e: InterruptedException) {
+                    // May happen when the submitted job is cancelled.
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                } finally {
+                    submitNextForExecution()
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            } finally {
-                submitNextForExecution()
             }
+            job.future.complete(future)
+        } finally {
+            cancelSemaphore.release()
         }
-        job.future.complete(future)
     }
 
     private fun submitNextForExecution() {
-        mutex.acquire()
+        stateMutex.acquire()
         try {
             if (queue.isNotEmpty()) {
                 submitForExecution(queue.removeAt(0))
@@ -49,7 +57,7 @@ internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJ
                 jobExecuting = false
             }
         } finally {
-            mutex.release()
+            stateMutex.release()
         }
     }
 }
