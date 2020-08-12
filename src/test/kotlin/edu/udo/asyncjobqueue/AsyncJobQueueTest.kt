@@ -317,4 +317,27 @@ class AsyncJobQueueTest {
         Thread.sleep(300)
         assertFalse(jobWasInvoked)
     }
+
+    @Test
+    fun `When a scheduled job is canceled after it was submitted for execution then it is interrupted`() {
+        // given:
+        val executor = Executors.newFixedThreadPool(1)
+        val jobQueue = AsyncJobQueue.create(executor)
+
+        var jobWasInterrupted = false
+        val future = jobQueue.submit(Runnable {
+            try {
+                Thread.sleep(200)
+            } catch (e: InterruptedException) {
+                jobWasInterrupted = true
+            }
+        })
+
+        // when:
+        future.cancel(true)
+
+        // then:
+        Thread.sleep(300)
+        assertTrue(jobWasInterrupted)
+    }
 }
