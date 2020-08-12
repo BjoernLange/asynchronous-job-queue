@@ -22,8 +22,8 @@ internal class FutureWrapper(var wrapped: Future<Future<*>>) : Future<Any?> {
         return result to (System.currentTimeMillis() - start)
     }
 
-    override fun cancel(p0: Boolean): Boolean {
-        TODO("Not yet implemented")
+    override fun cancel(mayInterruptIfRunning: Boolean): Boolean {
+        return wrapped.cancel(mayInterruptIfRunning)
     }
 
     override fun isCancelled(): Boolean {

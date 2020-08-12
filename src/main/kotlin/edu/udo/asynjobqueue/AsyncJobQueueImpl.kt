@@ -28,7 +28,9 @@ internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJ
         jobExecuting = true
         val future = executor.submit {
             try {
-                job.runnable.run()
+                if (!job.future.isCancelled) {
+                    job.runnable.run()
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
