@@ -357,4 +357,21 @@ class AsyncJobQueueTest {
         // then:
         assertFalse(result)
     }
+
+    @Test
+    fun `When a scheduled job is cancelled before it is scheduled then it is cancelled`() {
+        // given:
+        val executor = ManualExecutorService()
+        val jobQueue = AsyncJobQueue.create(executor)
+
+        jobQueue.submit(Runnable { })
+        val future = jobQueue.submit(Runnable { })
+        future.cancel(true)
+
+        // when:
+        val result = future.isCancelled
+
+        // then:
+        assertTrue(result)
+    }
 }
