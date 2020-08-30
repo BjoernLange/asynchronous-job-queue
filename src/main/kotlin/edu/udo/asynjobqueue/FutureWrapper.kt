@@ -22,11 +22,7 @@ internal class FutureWrapper(var wrapped: Future<Future<*>>) : Future<Any?> {
         return result to (System.currentTimeMillis() - start)
     }
 
-    override fun cancel(mayInterruptIfRunning: Boolean): Boolean {
-        return wrapped.cancel(mayInterruptIfRunning) || wrapped.get().cancel(mayInterruptIfRunning)
-    }
+    override fun cancel(mayInterruptIfRunning: Boolean) = wrapped.cancel(mayInterruptIfRunning) || wrapped.get().cancel(mayInterruptIfRunning)
 
-    override fun isCancelled(): Boolean {
-        return wrapped.isCancelled || (wrapped.isDone && wrapped.get().isCancelled)
-    }
+    override fun isCancelled() = wrapped.isCancelled || (wrapped.isDone && wrapped.get().isCancelled)
 }
