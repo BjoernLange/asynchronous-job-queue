@@ -5,10 +5,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.*
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -389,5 +386,22 @@ class AsyncJobQueueTest {
 
         // then:
         assertTrue(result)
+    }
+
+    @Test
+    fun `When the running job throws an exception then the futures get reports it`() {
+        // given:
+        val executor = ManualExecutorService()
+        val jobQueue = AsyncJobQueue.create(executor)
+
+        val future = jobQueue.submit(Runnable { throw NullPointerException() })
+
+        // when:
+        executor.runNext()
+
+        // then:
+        Assertions.assertThrows(ExecutionException::class.java) {
+            future.get()
+        }
     }
 }
