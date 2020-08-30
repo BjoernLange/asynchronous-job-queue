@@ -27,6 +27,6 @@ internal class FutureWrapper(var wrapped: Future<Future<*>>) : Future<Any?> {
     }
 
     override fun isCancelled(): Boolean {
-        return wrapped.isCancelled
+        return wrapped.isCancelled || (wrapped.isDone && wrapped.get().isCancelled)
     }
 }
