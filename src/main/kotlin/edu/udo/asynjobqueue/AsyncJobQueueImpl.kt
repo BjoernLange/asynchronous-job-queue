@@ -36,8 +36,6 @@ internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJ
                     }
                 } catch (e: InterruptedException) {
                     // May happen when the submitted job is cancelled.
-                } catch (e: Exception) {
-                    e.printStackTrace()
                 } finally {
                     submitNextForExecution()
                 }

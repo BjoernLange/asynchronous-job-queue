@@ -19,8 +19,12 @@ class ManualExecutorService : ExecutorService {
         assertThat(submitted).isNotEmpty
         val submittedJob = submitted[0]
         submitted.removeAt(0)
-        submittedJob.runnable.run()
-        submittedJob.future.complete(null)
+        try {
+            submittedJob.runnable.run()
+            submittedJob.future.complete(null)
+        } catch (e: Exception) {
+            submittedJob.future.completeExceptionally(e)
+        }
     }
 
     override fun shutdown() {

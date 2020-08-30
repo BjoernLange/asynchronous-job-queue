@@ -391,13 +391,11 @@ class AsyncJobQueueTest {
     @Test
     fun `When the running job throws an exception then the futures get reports it`() {
         // given:
-        val executor = ManualExecutorService()
+        val executor = Executors.newFixedThreadPool(1)
         val jobQueue = AsyncJobQueue.create(executor)
 
-        val future = jobQueue.submit(Runnable { throw NullPointerException() })
-
         // when:
-        executor.runNext()
+        val future = jobQueue.submit(Runnable { throw NullPointerException() })
 
         // then:
         Assertions.assertThrows(ExecutionException::class.java) {
