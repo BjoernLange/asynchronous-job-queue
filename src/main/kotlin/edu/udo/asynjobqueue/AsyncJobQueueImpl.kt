@@ -34,8 +34,6 @@ internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJ
                     if (!job.future.isCancelled) {
                         job.runnable.run()
                     }
-                } catch (e: InterruptedException) {
-                    // May happen when the submitted job is cancelled.
                 } finally {
                     submitNextForExecution()
                 }
