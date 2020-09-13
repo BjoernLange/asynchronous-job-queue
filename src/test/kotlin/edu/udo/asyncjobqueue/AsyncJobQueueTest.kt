@@ -325,7 +325,7 @@ class AsyncJobQueueTest {
         var jobWasInterrupted = false
         val future = jobQueue.submit(Runnable {
             try {
-                Thread.sleep(200)
+                Thread.sleep(1000)
             } catch (e: InterruptedException) {
                 jobWasInterrupted = true
             }
@@ -334,6 +334,7 @@ class AsyncJobQueueTest {
 
         // when:
         val result = future.cancel(true)
+        Thread.sleep(100)
 
         // then:
         assertTrue(result)
