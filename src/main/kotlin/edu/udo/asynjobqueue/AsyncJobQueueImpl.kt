@@ -1,5 +1,6 @@
 package edu.udo.asynjobqueue
 
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
 import java.util.concurrent.Semaphore
@@ -25,12 +26,12 @@ internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJ
     }
 
     private fun submitForExecution(job: Job) {
-        val cancelSemaphore = Semaphore(0)
+        val cancelSemaphore = CompletableFuture<Void?>()
         try {
             jobExecuting = true
             val future = executor.submit {
                 try {
-                    cancelSemaphore.acquire()
+                    cancelSemaphore.get()
                     if (!job.future.isCancelled) {
                         job.runnable.run()
                     }
@@ -40,7 +41,7 @@ internal class AsyncJobQueueImpl(private val executor: ExecutorService) : AsyncJ
             }
             job.future.complete(future)
         } finally {
-            cancelSemaphore.release()
+            cancelSemaphore.complete(null)
         }
     }
 
