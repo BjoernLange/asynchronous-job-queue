@@ -161,7 +161,7 @@ class AsyncJobQueueTest {
         val executor = ManualExecutorService()
         val jobQueue = AsyncJobQueue.create(executor)
 
-        val future = jobQueue.submit(Runnable { })
+        val future = jobQueue.submit { }
         assertFalse(future.isDone)
 
         // when:
@@ -177,8 +177,8 @@ class AsyncJobQueueTest {
         val executor = ManualExecutorService()
         val jobQueue = AsyncJobQueue.create(executor)
 
-        jobQueue.submit(Runnable { })
-        val future = jobQueue.submit(Runnable { })
+        jobQueue.submit { }
+        val future = jobQueue.submit { }
         assertFalse(future.isDone)
 
         // when:
@@ -196,10 +196,10 @@ class AsyncJobQueueTest {
         val jobQueue = AsyncJobQueue.create(executor)
 
         var completed = false
-        val future = jobQueue.submit(Runnable {
+        val future = jobQueue.submit {
             Thread.sleep(200)
             completed = true
-        })
+        }
 
         // when:
         future.get()
@@ -214,13 +214,13 @@ class AsyncJobQueueTest {
         val executor = Executors.newFixedThreadPool(1)
         val jobQueue = AsyncJobQueue.create(executor)
 
-        jobQueue.submit(Runnable { Thread.sleep(200) })
+        jobQueue.submit { Thread.sleep(200) }
 
         var completed = false
-        val future = jobQueue.submit(Runnable {
+        val future = jobQueue.submit {
             Thread.sleep(200)
             completed = true
-        })
+        }
 
         // when:
         future.get()
@@ -236,10 +236,10 @@ class AsyncJobQueueTest {
         val jobQueue = AsyncJobQueue.create(executor)
 
         var completed = false
-        val future = jobQueue.submit(Runnable {
+        val future = jobQueue.submit {
             Thread.sleep(200)
             completed = true
-        })
+        }
 
         // when:
         future.get(1, TimeUnit.SECONDS)
@@ -254,9 +254,9 @@ class AsyncJobQueueTest {
         val executor = Executors.newFixedThreadPool(1)
         val jobQueue = AsyncJobQueue.create(executor)
 
-        jobQueue.submit(Runnable { Thread.sleep(1000) })
+        jobQueue.submit { Thread.sleep(1000) }
 
-        val future = jobQueue.submit(Runnable {})
+        val future = jobQueue.submit { }
 
         // when:
         Assertions.assertThrows(TimeoutException::class.java) {
@@ -270,9 +270,9 @@ class AsyncJobQueueTest {
         val executor = Executors.newFixedThreadPool(1)
         val jobQueue = AsyncJobQueue.create(executor)
 
-        val future = jobQueue.submit(Runnable {
+        val future = jobQueue.submit {
             Thread.sleep(200)
-        })
+        }
 
         // when:
         Assertions.assertThrows(TimeoutException::class.java) {
@@ -286,10 +286,10 @@ class AsyncJobQueueTest {
         val executor = Executors.newFixedThreadPool(1)
         val jobQueue = AsyncJobQueue.create(executor)
 
-        jobQueue.submit(Runnable { Thread.sleep(150) })
-        val future = jobQueue.submit(Runnable {
+        jobQueue.submit { Thread.sleep(150) }
+        val future = jobQueue.submit {
             Thread.sleep(150)
-        })
+        }
 
         // when:
         Assertions.assertThrows(TimeoutException::class.java) {
@@ -303,9 +303,9 @@ class AsyncJobQueueTest {
         val executor = Executors.newFixedThreadPool(1)
         val jobQueue = AsyncJobQueue.create(executor)
 
-        jobQueue.submit(Runnable { Thread.sleep(200) })
+        jobQueue.submit { Thread.sleep(200) }
         var jobWasInvoked = false
-        val future = jobQueue.submit(Runnable { jobWasInvoked = true })
+        val future = jobQueue.submit { jobWasInvoked = true }
 
         // when:
         val result = future.cancel(true)
@@ -323,13 +323,13 @@ class AsyncJobQueueTest {
         val jobQueue = AsyncJobQueue.create(executor)
 
         var jobWasInterrupted = false
-        val future = jobQueue.submit(Runnable {
+        val future = jobQueue.submit {
             try {
                 Thread.sleep(1000)
             } catch (e: InterruptedException) {
                 jobWasInterrupted = true
             }
-        })
+        }
         Thread.sleep(100)
 
         // when:
@@ -347,7 +347,7 @@ class AsyncJobQueueTest {
         val executor = ManualExecutorService()
         val jobQueue = AsyncJobQueue.create(executor)
 
-        val future = jobQueue.submit(Runnable { })
+        val future = jobQueue.submit { }
 
         // when:
         val result = future.isCancelled
@@ -362,8 +362,8 @@ class AsyncJobQueueTest {
         val executor = ManualExecutorService()
         val jobQueue = AsyncJobQueue.create(executor)
 
-        jobQueue.submit(Runnable { })
-        val future = jobQueue.submit(Runnable { })
+        jobQueue.submit { }
+        val future = jobQueue.submit { }
         future.cancel(true)
 
         // when:
@@ -379,7 +379,7 @@ class AsyncJobQueueTest {
         val executor = ManualExecutorService()
         val jobQueue = AsyncJobQueue.create(executor)
 
-        val future = jobQueue.submit(Runnable { })
+        val future = jobQueue.submit { }
         future.cancel(true)
 
         // when:
@@ -396,7 +396,7 @@ class AsyncJobQueueTest {
         val jobQueue = AsyncJobQueue.create(executor)
 
         // when:
-        val future = jobQueue.submit(Runnable { throw NullPointerException() })
+        val future = jobQueue.submit { throw NullPointerException() }
 
         // then:
         Assertions.assertThrows(ExecutionException::class.java) {
